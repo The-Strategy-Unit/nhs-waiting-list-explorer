@@ -24,14 +24,20 @@ library(tidyr)
 library(reactable)
 library(htmlwidgets)
 library(htmltools) 
+source("R/download_national_data.R")
+source("R/process_national_data.R")
 
 ########################
 # 0b. Load and process data 
 ########################
 reload = TRUE
-if(reload==TRUE) {
+if(reload ==TRUE) {
   download_national_data()
-  process_national_data(reload = TRUE)
+}
+
+reload = FALSE
+if(reload==FALSE) {
+  process_national_data(reload=FALSE)
 }
 
 ################################

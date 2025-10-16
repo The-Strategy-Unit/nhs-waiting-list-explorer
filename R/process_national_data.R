@@ -208,8 +208,8 @@ load_national_incomplete <- function(reload = FALSE, start_date = as.Date("1900-
     rds_file <- "data/all_national_incomplete.rds"
     if (!file.exists(rds_file) || reload) {
         # TODO: be more precise here!
-        r_scripts <- list.files("R", pattern = "\\.R$", full.names = TRUE)
-        sapply(r_scripts, source)
+        # r_scripts <- list.files("R", pattern = "\\.R$", full.names = TRUE)
+        # sapply(r_scripts, source)
 
         # List Excel files in the specified directory
         excel_files <- list.files("raw_data/national_rtt/provider/incomplete/", pattern = "\\.xlsx?$", full.names = TRUE)
