@@ -302,8 +302,6 @@ load_national_admitted <- function(reload = FALSE, start_date = as.Date("1900-01
 }
 
 
-file_path <- "raw_data/national_rtt/provider/incomplete/Incomplete-Provider-May25-XLSX-9M-32711.xlsx"
-
 incomplete_provider_stats <- function(file_path) {
     if (!file.exists(file_path)) stop("file not found: ", file_path)
     # determine report date (uses excel_report_date() and first_day_of_month() from utils_dates.R)
