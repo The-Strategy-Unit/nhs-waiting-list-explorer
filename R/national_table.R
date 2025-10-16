@@ -16,7 +16,7 @@
 # 5. Finally we render the table using reactable adding filtering and sorting
 
 ########################
-# 0. Required libraries
+# 0a. Required libraries
 ########################
 library(readxl)
 library(dplyr)
@@ -24,6 +24,16 @@ library(tidyr)
 library(reactable)
 library(htmlwidgets)
 library(htmltools) 
+
+########################
+# 0b. Load and process data 
+########################
+reload = TRUE
+if(reload==TRUE) {
+  download_national_data()
+  process_national_data(reload = TRUE)
+}
+
 ################################
 # 1. Load the preprocessed data
 ################################
@@ -208,7 +218,7 @@ numeric_cols <- sapply(final_table, is.numeric)
 final_table_finite <- final_table[apply(final_table[, numeric_cols], 1, function(row) all(is.finite(row))), ]
 final_table <- final_table_finite[final_table_finite$Queue_Size != 0, ]
 
-View(head(final_table))
+#View(head(final_table))
 
 # Reorder columns to put Treatment_Function_Code last and include percentile_relative_improvement
 finalized_table <- final_table[, c(
@@ -240,8 +250,8 @@ finalized_table <- final_table[, c(
 # for (i in 5:ncol(finalized_table)) {
 #   finalized_table[[i]] <- as.numeric(finalized_table[[i]])
 # }
-View(final_table)
-View(finalized_table)
+#View(final_table)
+#View(finalized_table)
 
 
 ##################################################################
