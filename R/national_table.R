@@ -15,6 +15,8 @@
 # 4. We then combine and process rows to generate a final table
 # 5. Finally we render the table using reactable adding filtering and sorting
 
+
+
 ########################
 # 0a. Required libraries
 ########################
@@ -39,6 +41,12 @@ reload = FALSE
 if(reload==FALSE) {
   process_national_data(reload=FALSE)
 }
+
+#################################
+# 0c. Define the latest report date
+#################################
+#max_report_date <- max(all_national_incomplete$report_date, na.rm = TRUE)
+max_report_date <- as.Date("2025-05-01") # Override for testing with fixed date
 
 ################################
 # 1. Load the preprocessed data
@@ -73,8 +81,7 @@ all_national_incomplete$Queue_Size <- as.numeric(all_national_incomplete$Queue_S
 # 2a. The latest report date
 #########################################################
 
-#max_report_date <- max(all_national_incomplete$report_date, na.rm = TRUE)
-max_report_date <- as.Date("2025-05-01") # Override for testing with fixed date
+
 incomplete_data <- dplyr::filter(all_national_incomplete, report_date == max_report_date)
 
 
