@@ -1,0 +1,81 @@
+---
+title: "National Waiting List"
+format:
+    dashboard:
+        nav-buttons:
+          - icon: github
+            href: https://github.com/The-Strategy-Unit/nhs-waiting-list-explorer
+---
+
+
+
+# National Table {.page}
+
+## Row
+
+This is the explorer for the national waiting list. You can use it by...
+
+Expand the sidebar on the right to read more about the key metrics.
+
+## Row
+```{r}
+finalized_table <- readRDS("../data/finalized_table.rds")
+
+finalized_table |>
+dplyr::filter(Treatment_Function_Code == "C_999") |>
+dplyr::select(Provider_Name, Queue_Ratio, Percentile_Pressure, Load) |>
+reactable::reactable()
+```
+
+# Some info {.sidebar}
+
+Here is some extra info. It appears on _every page_
+
+You could explain the key metrics here if you want
+
+# Detailed Table {.page}
+
+```{r}
+source("display_detailed_national_table.R")
+tbl_widget
+```
+
+# Key metrics {.page}
+
+## Row
+
+Space to explain the key metrics
+
+- **Percentile Pressure**: 
+- **Queue Ratio**:
+- **Load**:
+
+# About {.page}
+
+## Row
+
+::: {.card}
+
+### HACA 2025 presentation
+
+{{< video https://www.youtube.com/watch?v=OIJ4C-8qEi8 >}}
+:::
+
+::: {.card}
+### Paper
+
+Richard M Wood, Sebastian S Fox, Lucy E Morgan, Neil S Walton,
+The NHS waiting list in England must halve to reach waiting time targets,
+[Future Healthcare Journal, Volume 12, Issue 4, 2025](https://www.sciencedirect.com/science/article/pii/S2514664525002577)
+:::
+
+
+
+## Row
+
+::: {.card}
+
+### Contact
+
+For more information about this tool please contact ...
+:::
