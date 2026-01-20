@@ -19,7 +19,7 @@ Expand the sidebar on the right to read more about the key metrics.
 
 ## Row
 ```{r}
-finalized_table <- readRDS("../data/finalized_table.rds")
+finalized_table <- readRDS("data/finalized_table.rds")
 
 finalized_table |>
 dplyr::filter(Treatment_Function_Code == "C_999") |>
@@ -36,7 +36,7 @@ You could explain the key metrics here if you want
 # Detailed Table {.page}
 
 ```{r}
-source("display_detailed_national_table.R")
+source("R/display_detailed_national_table.R")
 tbl_widget
 ```
 
