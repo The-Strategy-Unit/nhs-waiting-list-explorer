@@ -1,5 +1,5 @@
 ---
-title: "National Waiting List"
+title: "National Waiting List Explorer"
 format:
     dashboard:
         nav-buttons:
@@ -12,30 +12,116 @@ format:
 # National Table {.page}
 
 ## Row
+We rank each provider nationally according to their waiting list performance. 
+We assess the size, distribution and improvement of each provider trust respectively with the 
+queue size ratio, pressure, and load (decribed further in the key metrics tab). 
+A pressure of one or lower meets the national waiting list standard.
 
-This is the explorer for the national waiting list. You can use it by...
 
-Expand the sidebar on the right to read more about the key metrics.
+
 
 ## Row
 ```{r}
 finalized_table <- readRDS("data/finalized_table.rds")
 
-finalized_table |>
-dplyr::filter(Treatment_Function_Code == "C_999") |>
-dplyr::select(Provider_Name, Queue_Ratio, Percentile_Pressure, Load) |>
-reactable::reactable()
+national_view <- finalized_table |>
+  dplyr::filter(Treatment_Function_Code == "C_999") |>
+  dplyr::select(Provider_Name, Queue_Ratio, Percentile_Pressure, Load)
+
+# Calculate means and standard deviations
+queue_ratio_mean <- mean(national_view$Queue_Ratio, na.rm = TRUE)
+queue_ratio_sd <- sd(national_view$Queue_Ratio, na.rm = TRUE)
+percentile_pressure_mean <- mean(national_view$Percentile_Pressure, na.rm = TRUE)
+percentile_pressure_sd <- sd(national_view$Percentile_Pressure, na.rm = TRUE)
+load_mean <- mean(national_view$Load, na.rm = TRUE)
+load_sd <- sd(national_view$Load, na.rm = TRUE)
+
+# Calculate Z-scores and composite score
+national_view <- national_view |>
+  dplyr::mutate(
+    Queue_Ratio_Z = (Queue_Ratio - queue_ratio_mean) / queue_ratio_sd,
+    Percentile_Pressure_Z = (Percentile_Pressure - percentile_pressure_mean) / percentile_pressure_sd,
+    Load_Z = (Load - load_mean) / load_sd,
+    Score = (Queue_Ratio_Z + Percentile_Pressure_Z + Load_Z) / 3,
+    Ranking = rank(Score, ties.method = "first")
+  ) |>
+  dplyr::arrange(Ranking) |>
+  dplyr::select(Provider_Name, Queue_Ratio, Percentile_Pressure, Load, Score, Ranking)
+  reactable::reactable(
+    national_view,
+    defaultPageSize = 10,
+    filterable = TRUE,
+    columns = list(
+      Provider_Name = reactable::colDef(name = "Provider", filterable = TRUE),
+      Queue_Ratio = reactable::colDef(name = "Queue Size Ratio", filterable = FALSE),
+      Percentile_Pressure = reactable::colDef(name = "Pressure", filterable = FALSE),
+      Load = reactable::colDef(filterable = FALSE),
+      Ranking = reactable::colDef(width = 100, filterable = FALSE),
+      Score = reactable::colDef(name = "Overall Score", format = reactable::colFormat(digits = 2), filterable = FALSE)
+    )
+  )
 ```
 
 # Some info {.sidebar}
 
-Here is some extra info. It appears on _every page_
+```{r}
+#| echo: false
+#| include: false
+#| eval: false
+#| message: false
+#| warning: false
 
-You could explain the key metrics here if you want
+if (knitr::opts_knit$get('rmarkdown.pandoc.to') == 'html') {
+  if (knitr::opts_current$get('tab') == 'National Table') {
+    cat("We consider three key statistics: 
+
+1. **The queue size ratio** which judges the current list size relative to what the list should be given the demand observed over the last year. The queue ration measures the size of the list.
+
+2. **The Pressure** which is the ratio between the 92nd percentile of wait time on the list and 18 weeks. Pressure of 1 or lower meets the NHS target of 92% having patients waited 18 weeks.  Pressure above 1 does not. Pressure measures the shape of the list.
+
+3. **The Load** is the ratio between observed rate of arrivals and departures. I.e. for every departure we make how many arrivals should we expect. This is typically close to 1. A value above one means the list has increased below 1 the list has decreased. Thus is a measurement of change and improvement.
+
+The score is the average z-score (value minus mean over standard deviation) of the three statistics collected. These are then ranked to give a ranking of the providers.")
+  } else if (knitr::opts_current$get('tab') == 'Detailed Table') {
+    cat("Content for Detailed Table goes here.")
+  }
+}
+```
+
+
+
+# Specialties Table {.page}
+
+## Row
+This view ranks specialties by key pressure metrics using precomputed scores.
+
+## Row
+```{r}
+specialties_ranked <- readRDS("data/specialties_ranked.rds")
+
+reactable::reactable(
+  specialties_ranked,
+  defaultPageSize = 10,
+  filterable = TRUE,
+  columns = list(
+    Treatment_Function_Code = reactable::colDef(name = "Specialty Code", filterable = TRUE),
+    Treatment_Function = reactable::colDef(name = "Specialty", filterable = TRUE),
+    Queue_Ratio = reactable::colDef(name = "Queue Size Ratio"),
+    Percentile_Pressure = reactable::colDef(name = "Pressure"),
+    Load = reactable::colDef(name = "Load"),
+    Score = reactable::colDef(name = "Overall Score", format = reactable::colFormat(digits = 2)),
+    Ranking = reactable::colDef(name = "Rank", width = 100)
+  )
+)
+```
+
 
 # Detailed Table {.page}
 
 ```{r}
+# Load required data and define max_report_date
+finalized_table <- readRDS("data/finalized_table.rds")
+
 source("R/display_detailed_national_table.R")
 tbl_widget
 ```

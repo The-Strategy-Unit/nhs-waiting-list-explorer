@@ -48,7 +48,7 @@ if(reload==FALSE) {
 # 0c. Define the latest report date
 #################################
 # max_report_date <- max(all_national_incomplete$report_date, na.rm = TRUE)
-max_report_date <- as.Date("2025-05-01") # Override for testing with fixed date
+max_report_date <- as.Date("2025-11-01") # Override for testing with fixed date
 
 ################################
 # 1. Load the preprocessed data
@@ -106,6 +106,7 @@ one_year_ago <- seq(as.Date(max_report_date), length = 2, by = "-12 months")[2]
 # extract rows for that report date (year-ago snapshot)
 incomplete_data_year_ago <- dplyr::filter(all_national_incomplete, report_date == one_year_ago)
 
+
 # We don't need all columns so we select and rename what we need
 a_year_ago <- incomplete_data_year_ago[, c(
   "Provider_Code",
@@ -113,8 +114,15 @@ a_year_ago <- incomplete_data_year_ago[, c(
   "Queue_Size",
   "Total_within_18_weeks",
   "%_within_18_weeks",
-  "percentile_92"
+  "percentile_92",
+  "Average_(median)_waiting_time_(in_weeks)"
 )]
+
+# Rename the median waiting time column
+colnames(a_year_ago)[colnames(a_year_ago) == "Average_(median)_waiting_time_(in_weeks)"] <- "median_wait_year_ago"
+
+# Don't multiply by 100 here; will be done consistently later with current year data
+a_year_ago$`%_within_18_weeks` <- as.numeric(a_year_ago$`%_within_18_weeks`)
 
 
 colnames(a_year_ago)[colnames(a_year_ago) == "Queue_Size"] <- "Queue_size_year_ago"
@@ -166,9 +174,14 @@ joined_data <- subset(
 # Now we merge with date from a year-ago
 joined_data <- merge(joined_data, a_year_ago, by = c("Provider_Code", "Treatment_Function_Code"), all.x = TRUE)
 
+View(head(joined_data))
 # Call it final_table
 final_table <- joined_data
 
+View(head(final_table))
+
+final_table <- final_table |>
+  dplyr::rename(median_wait = "Average_(median)_waiting_time_(in_weeks)")
 # Remove unwanted columns
 final_table$Total_52_plus_weeks <- NULL
 final_table$Total_78_plus_weeks <- NULL
@@ -179,6 +192,7 @@ final_table$`Average_(median)_waiting_time_(in_weeks)` <- NULL
 final_table$report_date <- NULL
 final_table$source_file <- NULL
 
+
 # Make sure the types of columns are correct
 final_table[, 1:4] <- lapply(final_table[, 1:4], function(x) as.character(x))
 final_table[, 5:ncol(final_table)] <- lapply(final_table[, 5:ncol(final_table)], function(x) as.numeric(as.character(x)))
@@ -186,6 +200,22 @@ final_table[, 5:ncol(final_table)] <- lapply(final_table[, 5:ncol(final_table)],
 # Calculate Improvement within 18 weeks
 final_table$Relative_Improvement_in_18_weeks <-
   (final_table$Total_within_18_weeks_year_ago - final_table$Total_within_18_weeks) / final_table$Total_within_18_weeks_year_ago
+
+
+final_table$Change_in_18_weeks <-
+  (final_table$Total_within_18_weeks_year_ago - final_table$Total_within_18_weeks) 
+
+
+  final_table$`%_within_18_weeks` <- final_table$`%_within_18_weeks` * 100
+  final_table$`%_within_18_weeks_year_ago` <- final_table$`%_within_18_weeks_year_ago` * 100
+
+
+# Calculate percentage point change in %_within_18_weeks
+final_table$`%_within_18_weeks_Change` <-
+  final_table$`%_within_18_weeks` - final_table$`%_within_18_weeks_year_ago`
+#View(head(final_table))
+
+final_table$median_change <- final_table$median_wait - final_table$median_wait_year_ago
 
 # Calculate Improvement in 92nd percentile
 final_table$percentile_improvement <- (final_table$percentile_92 - final_table$`92nd_percentile_year_ago`)
@@ -211,7 +241,7 @@ final_table$Load <- final_table$Mean_Arrival / final_table$Mean_Departure
 
 # Round numbers a bit for presentation purposes
 final_table$Percentile_Pressure <- round(as.numeric(final_table$percentile_92) / 18, 1)
-final_table$`%_within_18_weeks` <- 100 * as.numeric(final_table$`%_within_18_weeks`)
+final_table$`%_within_18_weeks` <- as.numeric(final_table$`%_within_18_weeks`)
 final_table$Mean_Arrival <- round(as.numeric(final_table$Mean_Arrival), 1)
 final_table$`%_within_18_weeks` <- round(as.numeric(final_table$`%_within_18_weeks`), 1)
 final_table$Load <- round(as.numeric(final_table$Load), 2)
@@ -239,8 +269,10 @@ numeric_cols <- sapply(final_table, is.numeric)
 final_table_finite <- final_table[apply(final_table[, numeric_cols], 1, function(row) all(is.finite(row))), ]
 final_table <- final_table_finite[final_table_finite$Queue_Size != 0, ]
 
+View(head(final_table))
+
 # Reorder columns to put Treatment_Function_Code last and include percentile_relative_improvement
-finalized_table <- final_table[, c(
+finalized_table <- final_table[, intersect(c(
   "Provider_Code",
   "Provider_Name",
   "Treatment_Function_Code",
@@ -248,14 +280,17 @@ finalized_table <- final_table[, c(
   "Queue_Size",
   "Target_Q_Size",
   "Queue_Ratio",
+  "median_wait",
   "percentile_92",
   "%_within_18_weeks",
   "Percentile_Pressure",
+  "median_change",
+  "%_within_18_weeks_Change",
   "Queue_Size_Change",
   "Relative_Improvement_in_18_weeks",
   "%_Queue_Size_Change",
   "percentile_improvement",
   "Load"
-)]
+), names(final_table))]
 
 saveRDS(finalized_table, "data/finalized_table.rds")
