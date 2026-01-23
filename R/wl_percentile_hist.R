@@ -36,3 +36,4 @@ wl_percentile_hist <- function(wl_hist, percentage = 92) {
 
     return(list(percentage = percentage, date = date_p, weeks = weeks_p))
 }
+

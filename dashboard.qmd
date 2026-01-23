@@ -18,8 +18,6 @@ queue size ratio, pressure, and load (decribed further in the key metrics tab).
 A pressure of one or lower meets the national waiting list standard.
 
 
-
-
 ## Row
 ```{r}
 finalized_table <- readRDS("data/finalized_table.rds")
@@ -63,6 +61,22 @@ national_view <- national_view |>
 ```
 
 # Some info {.sidebar}
+
+**Size, Shape and Improvement.**
+The queue size ratio, pressure and load respectively measure the size, shape and improvement in a waiting list. A health waiitng list should statisfy
+$$
+\textrm{queue ratio} < 1
+$$ 
+$$
+\textrm{pressure} < 1
+$$ 
+$$
+\textrm{load} < 1
+$$
+The pressure being less than 1 corresponds the the NHS constitutional target. 
+
+**NHS England's Current Position.**
+Across NHS England, $\textrm{queue ratio} = 2.5$, $\textrm{Pressure} = 2.2$, $\textrm{Load} = 0.98$ meaning the nation list is over twice as long as it should be, long waiters are waiting over twice as much as they should, and the national list is decreasing (slowly). Under the current operational position the NHS constitutional target will take 20 years to reach. 
 
 ```{r}
 #| echo: false
@@ -132,9 +146,51 @@ tbl_widget
 
 Space to explain the key metrics
 
-- **Percentile Pressure**: 
-- **Queue Ratio**:
-- **Load**:
+- **Queue Ratio**: The Queue Ratio is the ratio between the current queue size and an estimate of the queue size required to meet targets given the rate of referrals observed over the last year. The formula is
+$$
+\textrm{Queue Ratio} = \frac{\textrm{Queue Size}}{\textrm{Target Queue Size}} \, ,
+$$
+a description of the Target Queue Size is given below. Notice $\textrm{Queue Ratio} < 1$ suggests that the size of the list is correct. Notice $\textrm{Queue Ratio} > 1$ suggests that the queue size is too big. Nationally the Queue Ratio has been above 2 for some time. I.e. the national list is twice as big as it should be.
+
+
+- **Pressure**: The Pressure on a list is a measure of the distribution of waiters on a list, as determined by the ratio between the percentile targeted and the target, specifically, the 92nd percentile and the 18-week target. That is
+$$
+\textrm{Pressure} = \frac{\textrm{92nd Percentile}}{\textrm{18 weeks}} \, .
+$$
+A description of percentiles is given below. The NHS constitutional target is that 92% of the patients waiting for elective care should have waited less that 18 weeks. In otherwords, the NHS constitional target is met if and only if $\textrm{Pressure} < 1$. The natioanlly the Pressure is above 2, long waiters are waiting over twice what the should be. The Pressure has decreased more significantly than recent years, which suggests a stablization in what has been an unstable systemic dynamic over the last 15 years. 
+
+- **Load**: The load is a measure of the change in the list size over the last year. It measures the rate of referrals reported over the last 12 months agains the rate of removals reported over the last 12 months. That is
+$$
+\text{Load} = \frac{\textrm{Referral Rate}}{\textrm{Removal Rate}} \,.
+$$
+The Referal Rate is a reported statistic. The removals are not reported; these are estimated from the change in waiting list size see description below. If the $\textrm{Load}< 1$ then the waiting list has decreased over the last year, $\textrm{Load}>1$ then the list had increased over the last year. Thus $\text{Load}$ on NHS England is $0.98$ meaning for every $100$ removals that occur there are $98$ referals.
+
+---
+
+- **Target Queue Size:** The target queue size is a conservative estimate of the waiting list size required to meet targets. The result applies Little's Law a renound formula for calcualtion the stable waiting list size give the target waiting time and referral rate:
+$$
+\textrm{Target Queue Size} = \textrm{Referral Rate} \times \textrm{Target Waiting Time}
+$$
+where we calculate 
+$$
+\begin{align}
+\textrm{Referral Rate} &= \text{average monthly referrals over last 12 months} \\
+\textrm{Target wait time} &= 7.14 \text{ weeks} = 1.644 \text{ months}
+\end{align}
+$$
+The calculation for target wait time and Little's Law is discussed in more detail in Fong et al. (2022) see references. Historically successfully reaching the 18 week target requires the average waiter to wait less than half of 18 weeks.
+
+- **Removal Rate:**  The removal rate is the average number of monthly removals over the last 12 months, this can be calculated from the referral rate (see above) and the current queue size and the queue size a year ago as follows:
+$$
+\begin{align}
+\textrm{Removal Rate} &= \textrm{Referral Rate} - \frac{\textrm{Queue Size} - \textrm{Queue Size}_{\textrm{Year Ago}}}{12}
+\end{align}
+$$
+where the removal rate represents the average monthly removals, calculated by subtracting the monthly change in queue size from the referral rate.
+
+- **Median:** The median is the "middle" waiter on a list. For example, if there are 99 people on a list the median is the 50th person (they have 49 people who have waited less time and 49 people who have waited more). The median is how long that 50th peson has waited.
+
+- **92nd percentile:** The 92nd percentile is the person where 92% of the list has waited less time so far. That is if there are 99 people on the list the 92nd percentile is the 92nd person (there are 91 people who have waited less time and 7 people who have waited more). The 92nd percentile is how long the that 92nd person has waited. If the 92nd percentile is less than 18 weeks then the NHS constitutional target has been achieved for that list. 
 
 # About {.page}
 
