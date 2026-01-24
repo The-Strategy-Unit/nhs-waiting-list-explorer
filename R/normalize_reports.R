@@ -71,7 +71,7 @@ normalize_reports <- function(wl_data, reference_date = NULL, date_prefix = "arr
     select(-days_since_since, -days_since_before, -all_of(col_since), -all_of(col_before), -report_date)
   
   # Group by provider, treatment function, and normalized date bins, then sum counts
-  grouping_cols <- c("Provider_Code", "Treatment_Function_Code", "normalized_since", "normalized_before")
+  grouping_cols <- c("Provider_Code", "Provider_Name", "Treatment_Function_Code", "Treatment_Function", "normalized_since", "normalized_before")
   
   # Only include grouping columns that exist in the data
   existing_grouping_cols <- intersect(grouping_cols, colnames(wl_data_normalized))

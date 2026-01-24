@@ -11,59 +11,27 @@ format:
 
 # National Table {.page}
 
+
+
 ## Row
+
 We rank each provider nationally according to their waiting list performance. 
 We assess the size, distribution and improvement of each provider trust respectively with the 
 queue size ratio, pressure, and load (decribed further in the key metrics tab). 
 A pressure of one or lower meets the national waiting list standard.
 
 
-## Row
 ```{r}
 finalized_table <- readRDS("data/finalized_table.rds")
 
-national_view <- finalized_table |>
-  dplyr::filter(Treatment_Function_Code == "C_999") |>
-  dplyr::select(Provider_Name, Queue_Ratio, Percentile_Pressure, Load)
-
-# Calculate means and standard deviations
-queue_ratio_mean <- mean(national_view$Queue_Ratio, na.rm = TRUE)
-queue_ratio_sd <- sd(national_view$Queue_Ratio, na.rm = TRUE)
-percentile_pressure_mean <- mean(national_view$Percentile_Pressure, na.rm = TRUE)
-percentile_pressure_sd <- sd(national_view$Percentile_Pressure, na.rm = TRUE)
-load_mean <- mean(national_view$Load, na.rm = TRUE)
-load_sd <- sd(national_view$Load, na.rm = TRUE)
-
-# Calculate Z-scores and composite score
-national_view <- national_view |>
-  dplyr::mutate(
-    Queue_Ratio_Z = (Queue_Ratio - queue_ratio_mean) / queue_ratio_sd,
-    Percentile_Pressure_Z = (Percentile_Pressure - percentile_pressure_mean) / percentile_pressure_sd,
-    Load_Z = (Load - load_mean) / load_sd,
-    Score = (Queue_Ratio_Z + Percentile_Pressure_Z + Load_Z) / 3,
-    Ranking = rank(Score, ties.method = "first")
-  ) |>
-  dplyr::arrange(Ranking) |>
-  dplyr::select(Provider_Name, Queue_Ratio, Percentile_Pressure, Load, Score, Ranking)
-  reactable::reactable(
-    national_view,
-    defaultPageSize = 10,
-    filterable = TRUE,
-    columns = list(
-      Provider_Name = reactable::colDef(name = "Provider", filterable = TRUE),
-      Queue_Ratio = reactable::colDef(name = "Queue Size Ratio", filterable = FALSE),
-      Percentile_Pressure = reactable::colDef(name = "Pressure", filterable = FALSE),
-      Load = reactable::colDef(filterable = FALSE),
-      Ranking = reactable::colDef(width = 100, filterable = FALSE),
-      Score = reactable::colDef(name = "Overall Score", format = reactable::colFormat(digits = 2), filterable = FALSE)
-    )
-  )
+source("R/national_view_table.R")
+create_national_view_table(finalized_table)
 ```
 
-# Some info {.sidebar}
+## Row {.sidebar .sidebar-right}
 
 **Size, Shape and Improvement.**
-The queue size ratio, pressure and load respectively measure the size, shape and improvement in a waiting list. A health waiitng list should statisfy
+The queue size ratio, pressure and load respectively measure the size, shape and improvement in a waiting list. A health waiting list should satisfy:
 $$
 \textrm{queue ratio} < 1
 $$ 
@@ -73,10 +41,28 @@ $$
 $$
 \textrm{load} < 1
 $$
-The pressure being less than 1 corresponds the the NHS constitutional target. 
+The pressure being less than 1 corresponds to the NHS constitutional target. 
 
 **NHS England's Current Position.**
-Across NHS England, $\textrm{queue ratio} = 2.5$, $\textrm{Pressure} = 2.2$, $\textrm{Load} = 0.98$ meaning the nation list is over twice as long as it should be, long waiters are waiting over twice as much as they should, and the national list is decreasing (slowly). Under the current operational position the NHS constitutional target will take 20 years to reach. 
+Across NHS England, $\textrm{queue ratio} = 2.5$, $\textrm{Pressure} = 2.2$, $\textrm{Load} = 0.98$ meaning the nation list is over twice as long as it should be, long waiters are waiting over twice as much as they should, and the national list is decreasing (slowly). Under the current operational position the NHS constitutional target will take 20 years to reach.
+
+<!-- # Some info {.sidebar}
+
+**Size, Shape and Improvement.**
+The queue size ratio, pressure and load respectively measure the size, shape and improvement in a waiting list. A health waiting list should satisfy:
+$$
+\textrm{queue ratio} < 1
+$$ 
+$$
+\textrm{pressure} < 1
+$$ 
+$$
+\textrm{load} < 1
+$$
+The pressure being less than 1 corresponds to the NHS constitutional target. 
+
+**NHS England's Current Position.**
+Across NHS England, $\textrm{queue ratio} = 2.5$, $\textrm{Pressure} = 2.2$, $\textrm{Load} = 0.98$ meaning the nation list is over twice as long as it should be, long waiters are waiting over twice as much as they should, and the national list is decreasing (slowly). Under the current operational position the NHS constitutional target will take 20 years to reach. -->
 
 ```{r}
 #| echo: false
@@ -113,22 +99,22 @@ This view ranks specialties by key pressure metrics using precomputed scores.
 ```{r}
 specialties_ranked <- readRDS("data/specialties_ranked.rds")
 
-reactable::reactable(
-  specialties_ranked,
-  defaultPageSize = 10,
-  filterable = TRUE,
-  columns = list(
-    Treatment_Function_Code = reactable::colDef(name = "Specialty Code", filterable = TRUE),
-    Treatment_Function = reactable::colDef(name = "Specialty", filterable = TRUE),
-    Queue_Ratio = reactable::colDef(name = "Queue Size Ratio"),
-    Percentile_Pressure = reactable::colDef(name = "Pressure"),
-    Load = reactable::colDef(name = "Load"),
-    Score = reactable::colDef(name = "Overall Score", format = reactable::colFormat(digits = 2)),
-    Ranking = reactable::colDef(name = "Rank", width = 100)
-  )
-)
+source("R/specialties_view_table.R")
+create_specialties_view_table(specialties_ranked)
 ```
 
+
+# Waiting Times Table {.page}
+
+## Row
+Waiting time percentiles by provider and treatment function. Shows the median (50th percentile) and 92nd percentile waiting times in weeks, along with average list size for both admitted and non-admitted pathways.
+
+## Row
+```{r}
+waiting_times_table <- readRDS("data/waiting_times_table.rds")
+source("R/waiting_times_table_view.R")
+create_waiting_times_table(waiting_times_table)
+```
 
 # Detailed Table {.page}
 
