@@ -190,11 +190,20 @@ where the removal rate represents the average monthly removals, calculated by su
 :::
 
 ::: {.card}
-### Paper
 
-Richard M Wood, Sebastian S Fox, Lucy E Morgan, Neil S Walton,
-The NHS waiting list in England must halve to reach waiting time targets,
-[Future Healthcare Journal, Volume 12, Issue 4, 2025](https://www.sciencedirect.com/science/article/pii/S2514664525002577)
+## About
+
+The National Waiting List Explorer collates key waiting time statistics for every waiting list in the country. We rank every hospital in the country according to its waiting time performance. We analyse every speciality against national targets. We analyse reported  treatment time, likely most of use to patients. We provider a detailed table to provides can look at their relative performance across multiple areas and criteria. 
+
+### Contact
+
+The explorer is collaboration between the [NHS Strategy Unit](https://www.strategyunitwm.nhs.uk/) and the [Operations Managment](https://operations.webspace.durham.ac.uk/) group at Durham Univeristy Business School. 
+
+For enquires please contact: 
+
+[rhian.davies25@nhs.net](mailto:rhian.davies25@nhs.net)
+
+[neil.walton@durham.ac.uk](mailto:neil.walton@durham.ac.uk)
 :::
 
 
@@ -203,7 +212,28 @@ The NHS waiting list in England must halve to reach waiting time targets,
 
 ::: {.card}
 
-### Contact
+# Further Reading
 
-For more information about this tool please contact ...
+The source code for this website and all calculations can be accessed here: [Github Source](https://github.com/The-Strategy-Unit/nhs-waiting-list-explorer)
+
+## NHSR Waiting List Package
+
+The calcuations and metrics are based on those developed in NHSRWaitinglist package:
+
+[Website](https://nhs-r-community.github.io/NHSRwaitinglist/), [CRAN](https://cran.r-project.org/web/packages/NHSRwaitinglist/index.html), [GitHub](https://github.com/nhs-r-community/NHSRwaitinglist)
+
+If you wish to analyse data within your own trust please use R to install the package: 
+
+
+
+`R> install.packages("NHSRwaitinglist")`
+
+<br>
+
+
+## Further Reading:
+
+Fong, Kevin, Yasser Mushtaq, Thomas House, Dan Gordon, Yingrae Chen, Darren Griffths, Shazaad Ahmad, and Neil Walton. "Understanding waiting lists pressures." [MedRxiv (2022): 2022-08.](https://www.medrxiv.org/content/10.1101/2022.08.23.22279117v1)
+
+
 :::
