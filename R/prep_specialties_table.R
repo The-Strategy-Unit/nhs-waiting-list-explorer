@@ -5,8 +5,8 @@ library(purrr)
 library(lubridate)
 library(tidyr)
 
-View(head(all_national_incomplete))
-View(head(incomplete_pathway_data))
+#View(head(all_national_incomplete))
+#View(head(incomplete_pathway_data))
 
 latest_report_date <- max(incomplete_pathway_data$report_date)
 
@@ -29,7 +29,7 @@ grouped_data <- filtered_incomplete_pathway_data |>
 # Source the wl_percentile_hist function
 source("R/utils_percentile_hist.R")
 
-View(head(grouped_data))
+#View(head(grouped_data))
 
 # Create a table with median and 92nd percentile for each Treatment_Function_Code
 percentile_table <- grouped_data %>%
@@ -41,7 +41,7 @@ percentile_table <- grouped_data %>%
   ) %>%
   select(Treatment_Function_Code, Treatment_Function, median_weeks, percentile_92_weeks)
 
-View(percentile_table)
+#View(percentile_table)
 
 
 ########## GET QUEUE SIZES NOW AND A YEAR AGO ##########
@@ -56,7 +56,7 @@ grouped_data_by_code <- filtered_incomplete_pathway_data |>
 grouped_data_by_code <- grouped_data_by_code %>%
     rename(Queue_Size = n)
 
-View(grouped_data_by_code)
+#View(grouped_data_by_code)
 
 # Filter incomplete_pathway_data by the report date one year ago
 filtered_incomplete_pathway_data_year_ago <- incomplete_pathway_data[incomplete_pathway_data$report_date == report_date_year_ago, ]
@@ -69,13 +69,13 @@ grouped_data_by_code_year_ago <- filtered_incomplete_pathway_data_year_ago |>
 # Rename column n to Queue_Size_year_ago
 grouped_data_by_code_year_ago <- grouped_data_by_code_year_ago %>%
     rename(Queue_Size_year_ago = n)
-View(grouped_data_by_code_year_ago)
+#View(grouped_data_by_code_year_ago)
 
 ###### GET ARRIVAL RATES #######
 
 
 all_national_new_periods <- readRDS("data/all_national_new_periods.rds")
-View(head(all_national_new_periods))
+#View(head(all_national_new_periods))
 
 # Filter all_national_new_periods for the latest report date and group by Treatment_Function_Code and Treatment_Function
 new_periods_grouped <- all_national_new_periods %>%
@@ -84,7 +84,7 @@ new_periods_grouped <- all_national_new_periods %>%
     dplyr::summarise(n = sum(n, na.rm = TRUE) / 12, .groups = "drop") %>%
     rename(arrival_rate = n)
 
-View((new_periods_grouped))
+#View((new_periods_grouped))
 
 specialties_table <- percentile_table %>%
     left_join(grouped_data_by_code, by = "Treatment_Function_Code") %>%
@@ -116,7 +116,7 @@ specialties_summary <- specialties_table %>%
 
 
 
-View(specialties_summary)
+#View(specialties_summary)
 
 
 # Z-score, composite score, and ranking for treatment functions
@@ -146,7 +146,7 @@ specialties_ranked <- specialties_summary |>
     Ranking
   )
 
-View(specialties_ranked)
+#View(specialties_ranked)
 
 # Save ranked specialties table to data folder
 saveRDS(specialties_ranked, "data/specialties_ranked.rds")

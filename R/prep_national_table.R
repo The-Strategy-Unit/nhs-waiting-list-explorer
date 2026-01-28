@@ -174,11 +174,11 @@ joined_data <- subset(
 # Now we merge with date from a year-ago
 joined_data <- merge(joined_data, a_year_ago, by = c("Provider_Code", "Treatment_Function_Code"), all.x = TRUE)
 
-View(head(joined_data))
+#View(head(joined_data))
 # Call it final_table
 final_table <- joined_data
 
-View(head(final_table))
+#View(head(final_table))
 
 final_table <- final_table |>
   dplyr::rename(median_wait = "Average_(median)_waiting_time_(in_weeks)")
@@ -269,7 +269,7 @@ numeric_cols <- sapply(final_table, is.numeric)
 final_table_finite <- final_table[apply(final_table[, numeric_cols], 1, function(row) all(is.finite(row))), ]
 final_table <- final_table_finite[final_table_finite$Queue_Size != 0, ]
 
-View(head(final_table))
+#View(head(final_table))
 
 # Reorder columns to put Treatment_Function_Code last and include percentile_relative_improvement
 finalized_table <- final_table[, intersect(c(
