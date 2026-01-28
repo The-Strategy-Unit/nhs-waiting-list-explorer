@@ -26,7 +26,7 @@ non_admitted_filtered <- non_admitted_data %>%
 # ---------------------
 
 library(dplyr)
-source("R/normalize_reports.R")
+source("R/utils_normalize_reports.R")
 
 cat("\nUsing already loaded non_admitted_data for test...\n")
 
@@ -60,7 +60,7 @@ cat("\nSummary: total rows =", nrow(normalized), ", total patients =", sum(norma
 
 
 # Percentile calculations (median and 92nd percentile) on normalized data
-source("R/wl_percentile_hist.R")
+source("R/utils_percentile_hist.R")
 
 cat("\nRenaming columns: arrived_* to arrival_*...\n")
 normalized <- normalized %>%
@@ -84,8 +84,8 @@ cat("92nd percentile: date =", as.character(p92$date), ", weeks =", round(p92$we
 # Batch percentile table for all providers/treatments (admitted & non-admitted)
 # -----------------------------------------------------------------------------
 
-source("R/normalize_reports.R")
-source("R/wl_percentile_hist.R")
+source("R/utils_normalize_reports.R")
+source("R/utils_percentile_hist.R")
 
 reference_date <- as.Date("2050-01-01")
 

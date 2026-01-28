@@ -24,7 +24,7 @@ A pressure of one or lower meets the national waiting list standard.
 ```{r}
 finalized_table <- readRDS("data/finalized_table.rds")
 
-source("R/national_view_table.R")
+source("R/view_national_table.R")
 create_national_view_table(finalized_table)
 ```
 
@@ -43,8 +43,30 @@ $$
 $$
 The pressure being less than 1 corresponds to the NHS constitutional target. 
 
+```{r}
+#| echo: false
+#| include: false
+specialties_ranked <- readRDS("data/specialties_ranked.rds")
+national_stats <- specialties_ranked |> 
+  dplyr::filter(Treatment_Function_Code == "C_999")
+queue_ratio_national <- round(national_stats$Queue_Ratio, 1)
+pressure_national <- round(national_stats$Percentile_Pressure, 1)
+load_national <- round(national_stats$Load, 2)
+```
+
 **NHS England's Current Position.**
-Across NHS England, $\textrm{queue ratio} = 2.5$, $\textrm{Pressure} = 2.2$, $\textrm{Load} = 0.98$ meaning the nation list is over twice as long as it should be, long waiters are waiting over twice as much as they should, and the national list is decreasing (slowly). Under the current operational position the NHS constitutional target will take 20 years to reach.
+Across NHS England, 
+$$
+\textrm{NHS Queue ratio} = `r queue_ratio_national`
+$$
+$$
+\textrm{NHS Pressure} = `r pressure_national`
+$$ 
+$$
+\textrm{NHS Load} = `r load_national`
+$$ 
+meaning the nation list is over twice as long as it should be, long waiters are waiting over twice as much as they should, and the national list is decreasing (slowly). Under the current operational position the NHS constitutional target will take 20 years to reach.
+
 
 <!-- # Some info {.sidebar}
 
@@ -99,7 +121,7 @@ This view ranks specialties by key pressure metrics using precomputed scores.
 ```{r}
 specialties_ranked <- readRDS("data/specialties_ranked.rds")
 
-source("R/specialties_view_table.R")
+source("R/view_specialties_table.R")
 create_specialties_view_table(specialties_ranked)
 ```
 
@@ -112,7 +134,7 @@ Waiting time percentiles by provider and treatment function. Shows the median (5
 ## Row
 ```{r}
 waiting_times_table <- readRDS("data/waiting_times_table.rds")
-source("R/waiting_times_table_view.R")
+source("R/view_waiting_times_table.R")
 create_waiting_times_table(waiting_times_table)
 ```
 
@@ -122,15 +144,25 @@ create_waiting_times_table(waiting_times_table)
 # Load required data and define max_report_date
 finalized_table <- readRDS("data/finalized_table.rds")
 
-source("R/display_detailed_national_table.R")
+source("R/view_detailed_national_table.R")
 tbl_widget
 ```
 
-# Key metrics {.page}
+# Key Metrics {.page}
 
 ## Row
 
-Space to explain the key metrics
+Here we describe the key statistics and calculations that are presented in the National Waiting List Explorer. We give a more complete picture by assessing the size, distribution and improvement in lists. These are principally measured through the **Queue Ratio**, **Pressure** and **Load**, respectively. 
+
+The Queue Ratio is the size of the list relative to the size is should be given the observed demand on the list. The Pressue is the ratio the amount the list is away from the constitutional 18-week target. The Load is the removal rate relative to referrals. In each case,
+
+::: {.text-center}
+**a value less than 1 is good; above 1 is typically not good.** <br>
+::: 
+
+<br>
+
+---
 
 - **Queue Ratio**: The Queue Ratio is the ratio between the current queue size and an estimate of the queue size required to meet targets given the rate of referrals observed over the last year. The formula is
 $$
@@ -229,6 +261,11 @@ If you wish to analyse data within your own trust please use R to install the pa
 `R> install.packages("NHSRwaitinglist")`
 
 <br>
+
+## Data 
+
+The data comes from NHS England's Referral to Treatment (RTT) waiting times:
+[NHS England RTT Waiting Times](https://www.england.nhs.uk/statistics/statistical-work-areas/rtt-waiting-times/)
 
 
 ## Further Reading:

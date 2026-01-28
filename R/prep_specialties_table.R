@@ -27,7 +27,7 @@ grouped_data <- filtered_incomplete_pathway_data |>
 
 
 # Source the wl_percentile_hist function
-source("R/wl_percentile_hist.R")
+source("R/utils_percentile_hist.R")
 
 View(head(grouped_data))
 
