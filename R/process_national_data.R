@@ -301,6 +301,56 @@ load_national_admitted <- function(reload = FALSE, start_date = as.Date("1900-01
     return(flat_df)
 }
 
+load_national_non_admitted <- function(reload = FALSE, start_date = as.Date("1900-01-01"), end_date = as.Date("2100-12-31")) {
+  rds_file <- "data/all_national_non_admitted.rds"
+  if (!file.exists(rds_file) || reload) {
+    # TODO: be more precise here!
+    # r_scripts <- list.files("R", pattern = "\\.R$", full.names = TRUE)
+    # sapply(r_scripts, source)
+
+    # List Excel files in the specified directory
+    excel_files <- list.files("raw_data/national_rtt/provider/non-admitted/", pattern = "\\.xlsx?$", full.names = TRUE)
+
+    # Check if any Excel files are found
+    if (length(excel_files) == 0) {
+      stop("No Excel files found in 'raw_data/national_rtt/provider/non-admitted/'")
+    }
+
+    flat_dfs <- list()
+    for (i in seq_along(excel_files)) {
+      report_date <- excel_report_date(excel_files[i])
+      # Only process if report_date is within start_date and end_date
+      if (is.null(report_date) || as.Date(report_date) < as.Date(start_date) || as.Date(report_date) > as.Date(end_date)) {
+        next
+      }
+      cat("Processing file", i, "of", length(excel_files), ":", excel_files[i], "\n")
+      flat_dfs[[i]] <- flatten_waiting_list_data(excel_files[i])
+    }
+
+    # Filter out NULLs from flat_dfs
+    flat_dfs_nonnull <- Filter(Negate(is.null), flat_dfs)
+    # Bind the non-NULL data frames into one
+    flat_df <- bind_rows(flat_dfs_nonnull)
+
+    # Create data directory if it doesn't exist
+    if (!dir.exists("data")) {
+      dir.create("data", recursive = TRUE)
+    }
+
+    saveRDS(flat_df, file = rds_file)
+  } else {
+    flat_df <- readRDS(rds_file)
+    # Optionally filter by date if loaded from RDS
+    if (!is.null(flat_df$report_date)) {
+      flat_df <- flat_df %>%
+        filter(as.Date(report_date) >= as.Date(start_date) & as.Date(report_date) <= as.Date(end_date))
+    }
+  }
+  saveRDS(flat_df, file = rds_file)
+  return(flat_df)
+}
+
+
 
 incomplete_provider_stats <- function(file_path) {
     if (!file.exists(file_path)) stop("file not found: ", file_path)
@@ -371,12 +421,14 @@ process_national_data <- function(reload = FALSE, start_date = as.Date("1900-01-
     new_periods <- load_national_new_periods(reload, start_date, end_date)
     incomplete <- load_national_incomplete(reload, start_date, end_date)
     admitted <- load_national_admitted(reload, start_date, end_date)
+    non_admitted <- load_national_non_admitted(reload, start_date, end_date)
     process_incomplete_stats(save = TRUE)
     
     return(list(
         new_periods = new_periods,
         incomplete = incomplete,
-        admitted = admitted
+        admitted = admitted,
+        non_admitted = non_admitted
     ))
 }
 
@@ -402,5 +454,6 @@ process_national_data <- function(reload = FALSE, start_date = as.Date("1900-01-
 # flatten_waiting_list_data(excel_files[9])
 # excel_file_name <- excel_files[9]
 # View(report_data)
+
 
 

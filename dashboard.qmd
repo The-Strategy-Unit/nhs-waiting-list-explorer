@@ -1,5 +1,5 @@
 ---
-title: "National Waiting List"
+title: "National Waiting List Explorer"
 format:
     dashboard:
         nav-buttons:
@@ -11,44 +11,204 @@ format:
 
 # National Table {.page}
 
-## Row
 
-This is the explorer for the national waiting list. You can use it by...
-
-Expand the sidebar on the right to read more about the key metrics.
 
 ## Row
+
+We rank each provider nationally according to their waiting list performance. 
+We assess the size, distribution and improvement of each provider trust respectively with the 
+queue size ratio, pressure, and load (decribed further in the key metrics tab). 
+A pressure of one or lower meets the national waiting list standard.
+
+
 ```{r}
 finalized_table <- readRDS("data/finalized_table.rds")
 
-finalized_table |>
-dplyr::filter(Treatment_Function_Code == "C_999") |>
-dplyr::select(Provider_Name, Queue_Ratio, Percentile_Pressure, Load) |>
-reactable::reactable()
+source("R/view_national_table.R")
+create_national_view_table(finalized_table)
 ```
 
-# Some info {.sidebar}
+## Row {.sidebar .sidebar-right}
 
-Here is some extra info. It appears on _every page_
+**Size, Shape and Improvement.**
+The queue size ratio, pressure and load respectively measure the size, shape and improvement in a waiting list. A health waiting list should satisfy:
+$$
+\textrm{queue ratio} < 1
+$$ 
+$$
+\textrm{pressure} < 1
+$$ 
+$$
+\textrm{load} < 1
+$$
+The pressure being less than 1 corresponds to the NHS constitutional target. 
 
-You could explain the key metrics here if you want
+```{r}
+#| echo: false
+#| include: false
+specialties_ranked <- readRDS("data/specialties_ranked.rds")
+national_stats <- specialties_ranked |> 
+  dplyr::filter(Treatment_Function_Code == "C_999")
+queue_ratio_national <- round(national_stats$Queue_Ratio, 1)
+pressure_national <- round(national_stats$Percentile_Pressure, 1)
+load_national <- round(national_stats$Load, 2)
+```
+
+**NHS England's Current Position.**
+Across NHS England, 
+$$
+\textrm{NHS Queue ratio} = `r queue_ratio_national`
+$$
+$$
+\textrm{NHS Pressure} = `r pressure_national`
+$$ 
+$$
+\textrm{NHS Load} = `r load_national`
+$$ 
+meaning the nation list is over twice as long as it should be, long waiters are waiting over twice as much as they should, and the national list is decreasing (slowly). Under the current operational position the NHS constitutional target will take 20 years to reach.
+
+
+<!-- # Some info {.sidebar}
+
+**Size, Shape and Improvement.**
+The queue size ratio, pressure and load respectively measure the size, shape and improvement in a waiting list. A health waiting list should satisfy:
+$$
+\textrm{queue ratio} < 1
+$$ 
+$$
+\textrm{pressure} < 1
+$$ 
+$$
+\textrm{load} < 1
+$$
+The pressure being less than 1 corresponds to the NHS constitutional target. 
+
+**NHS England's Current Position.**
+Across NHS England, $\textrm{queue ratio} = 2.5$, $\textrm{Pressure} = 2.2$, $\textrm{Load} = 0.98$ meaning the nation list is over twice as long as it should be, long waiters are waiting over twice as much as they should, and the national list is decreasing (slowly). Under the current operational position the NHS constitutional target will take 20 years to reach. -->
+
+```{r}
+#| echo: false
+#| include: false
+#| eval: false
+#| message: false
+#| warning: false
+
+if (knitr::opts_knit$get('rmarkdown.pandoc.to') == 'html') {
+  if (knitr::opts_current$get('tab') == 'National Table') {
+    cat("We consider three key statistics: 
+
+1. **The queue size ratio** which judges the current list size relative to what the list should be given the demand observed over the last year. The queue ration measures the size of the list.
+
+2. **The Pressure** which is the ratio between the 92nd percentile of wait time on the list and 18 weeks. Pressure of 1 or lower meets the NHS target of 92% having patients waited 18 weeks.  Pressure above 1 does not. Pressure measures the shape of the list.
+
+3. **The Load** is the ratio between observed rate of arrivals and departures. I.e. for every departure we make how many arrivals should we expect. This is typically close to 1. A value above one means the list has increased below 1 the list has decreased. Thus is a measurement of change and improvement.
+
+The score is the average z-score (value minus mean over standard deviation) of the three statistics collected. These are then ranked to give a ranking of the providers.")
+  } else if (knitr::opts_current$get('tab') == 'Detailed Table') {
+    cat("Content for Detailed Table goes here.")
+  }
+}
+```
+
+
+
+# Specialties Table {.page}
+
+## Row
+This view ranks specialties by key pressure metrics using precomputed scores.
+
+## Row
+```{r}
+specialties_ranked <- readRDS("data/specialties_ranked.rds")
+
+source("R/view_specialties_table.R")
+create_specialties_view_table(specialties_ranked)
+```
+
+
+# Waiting Times Table {.page}
+
+## Row
+Waiting time percentiles by provider and treatment function. Shows the median (50th percentile) and 92nd percentile waiting times in weeks, along with average list size for both admitted and non-admitted pathways.
+
+## Row
+```{r}
+waiting_times_table <- readRDS("data/waiting_times_table.rds")
+source("R/view_waiting_times_table.R")
+create_waiting_times_table(waiting_times_table)
+```
 
 # Detailed Table {.page}
 
 ```{r}
-source("R/display_detailed_national_table.R")
+# Load required data and define max_report_date
+finalized_table <- readRDS("data/finalized_table.rds")
+
+source("R/view_detailed_national_table.R")
 tbl_widget
 ```
 
-# Key metrics {.page}
+# Key Metrics {.page}
 
 ## Row
 
-Space to explain the key metrics
+Here we describe the key statistics and calculations that are presented in the National Waiting List Explorer. We give a more complete picture by assessing the size, distribution and improvement in lists. These are principally measured through the **Queue Ratio**, **Pressure** and **Load**, respectively. 
 
-- **Percentile Pressure**: 
-- **Queue Ratio**:
-- **Load**:
+The Queue Ratio is the size of the list relative to the size is should be given the observed demand on the list. The Pressue is the ratio the amount the list is away from the constitutional 18-week target. The Load is the removal rate relative to referrals. In each case,
+
+::: {.text-center}
+**a value less than 1 is good; above 1 is typically not good.** <br>
+::: 
+
+<br>
+
+---
+
+- **Queue Ratio**: The Queue Ratio is the ratio between the current queue size and an estimate of the queue size required to meet targets given the rate of referrals observed over the last year. The formula is
+$$
+\textrm{Queue Ratio} = \frac{\textrm{Queue Size}}{\textrm{Target Queue Size}} \, ,
+$$
+a description of the Target Queue Size is given below. Notice $\textrm{Queue Ratio} < 1$ suggests that the size of the list is correct. Notice $\textrm{Queue Ratio} > 1$ suggests that the queue size is too big. Nationally the Queue Ratio has been above 2 for some time. I.e. the national list is twice as big as it should be.
+
+
+- **Pressure**: The Pressure on a list is a measure of the distribution of waiters on a list, as determined by the ratio between the percentile targeted and the target, specifically, the 92nd percentile and the 18-week target. That is
+$$
+\textrm{Pressure} = \frac{\textrm{92nd Percentile}}{\textrm{18 weeks}} \, .
+$$
+A description of percentiles is given below. The NHS constitutional target is that 92% of the patients waiting for elective care should have waited less that 18 weeks. In otherwords, the NHS constitional target is met if and only if $\textrm{Pressure} < 1$. The natioanlly the Pressure is above 2, long waiters are waiting over twice what the should be. The Pressure has decreased more significantly than recent years, which suggests a stablization in what has been an unstable systemic dynamic over the last 15 years. 
+
+- **Load**: The load is a measure of the change in the list size over the last year. It measures the rate of referrals reported over the last 12 months agains the rate of removals reported over the last 12 months. That is
+$$
+\text{Load} = \frac{\textrm{Referral Rate}}{\textrm{Removal Rate}} \,.
+$$
+The Referal Rate is a reported statistic. The removals are not reported; these are estimated from the change in waiting list size see description below. If the $\textrm{Load}< 1$ then the waiting list has decreased over the last year, $\textrm{Load}>1$ then the list had increased over the last year. Thus $\text{Load}$ on NHS England is $0.98$ meaning for every $100$ removals that occur there are $98$ referals.
+
+---
+
+- **Target Queue Size:** The target queue size is a conservative estimate of the waiting list size required to meet targets. The result applies Little's Law a renound formula for calcualtion the stable waiting list size give the target waiting time and referral rate:
+$$
+\textrm{Target Queue Size} = \textrm{Referral Rate} \times \textrm{Target Waiting Time}
+$$
+where we calculate 
+$$
+\begin{align}
+\textrm{Referral Rate} &= \text{average monthly referrals over last 12 months} \\
+\textrm{Target wait time} &= 7.14 \text{ weeks} = 1.644 \text{ months}
+\end{align}
+$$
+The calculation for target wait time and Little's Law is discussed in more detail in Fong et al. (2022) see references. Historically successfully reaching the 18 week target requires the average waiter to wait less than half of 18 weeks.
+
+- **Removal Rate:**  The removal rate is the average number of monthly removals over the last 12 months, this can be calculated from the referral rate (see above) and the current queue size and the queue size a year ago as follows:
+$$
+\begin{align}
+\textrm{Removal Rate} &= \textrm{Referral Rate} - \frac{\textrm{Queue Size} - \textrm{Queue Size}_{\textrm{Year Ago}}}{12}
+\end{align}
+$$
+where the removal rate represents the average monthly removals, calculated by subtracting the monthly change in queue size from the referral rate.
+
+- **Median:** The median is the "middle" waiter on a list. For example, if there are 99 people on a list the median is the 50th person (they have 49 people who have waited less time and 49 people who have waited more). The median is how long that 50th peson has waited.
+
+- **92nd percentile:** The 92nd percentile is the person where 92% of the list has waited less time so far. That is if there are 99 people on the list the 92nd percentile is the 92nd person (there are 91 people who have waited less time and 7 people who have waited more). The 92nd percentile is how long the that 92nd person has waited. If the 92nd percentile is less than 18 weeks then the NHS constitutional target has been achieved for that list. 
 
 # About {.page}
 
@@ -62,11 +222,20 @@ Space to explain the key metrics
 :::
 
 ::: {.card}
-### Paper
 
-Richard M Wood, Sebastian S Fox, Lucy E Morgan, Neil S Walton,
-The NHS waiting list in England must halve to reach waiting time targets,
-[Future Healthcare Journal, Volume 12, Issue 4, 2025](https://www.sciencedirect.com/science/article/pii/S2514664525002577)
+## About
+
+The National Waiting List Explorer collates key waiting time statistics for every waiting list in the country. We rank every hospital in the country according to its waiting time performance. We analyse every speciality against national targets. We analyse reported  treatment time, likely most of use to patients. We provider a detailed table to provides can look at their relative performance across multiple areas and criteria. 
+
+### Contact
+
+The explorer is collaboration between the [NHS Strategy Unit](https://www.strategyunitwm.nhs.uk/) and the [Operations Managment](https://operations.webspace.durham.ac.uk/) group at Durham Univeristy Business School. 
+
+For enquires please contact: 
+
+[rhian.davies25@nhs.net](mailto:rhian.davies25@nhs.net)
+
+[neil.walton@durham.ac.uk](mailto:neil.walton@durham.ac.uk)
 :::
 
 
@@ -75,7 +244,33 @@ The NHS waiting list in England must halve to reach waiting time targets,
 
 ::: {.card}
 
-### Contact
+# Further Reading
 
-For more information about this tool please contact ...
+The source code for this website and all calculations can be accessed here: [Github Source](https://github.com/The-Strategy-Unit/nhs-waiting-list-explorer)
+
+## NHSR Waiting List Package
+
+The calcuations and metrics are based on those developed in NHSRWaitinglist package:
+
+[Website](https://nhs-r-community.github.io/NHSRwaitinglist/), [CRAN](https://cran.r-project.org/web/packages/NHSRwaitinglist/index.html), [GitHub](https://github.com/nhs-r-community/NHSRwaitinglist)
+
+If you wish to analyse data within your own trust please use R to install the package: 
+
+
+
+`R> install.packages("NHSRwaitinglist")`
+
+<br>
+
+## Data 
+
+The data comes from NHS England's Referral to Treatment (RTT) waiting times:
+[NHS England RTT Waiting Times](https://www.england.nhs.uk/statistics/statistical-work-areas/rtt-waiting-times/)
+
+
+## Further Reading:
+
+Fong, Kevin, Yasser Mushtaq, Thomas House, Dan Gordon, Yingrae Chen, Darren Griffths, Shazaad Ahmad, and Neil Walton. "Understanding waiting lists pressures." [MedRxiv (2022): 2022-08.](https://www.medrxiv.org/content/10.1101/2022.08.23.22279117v1)
+
+
 :::

@@ -1,3 +1,15 @@
+# At the beginning of display_detailed_national_table.R
+numeric_cols <- c("Queue_Size", "Target_Q_Size", "Queue_Ratio", "Percentile_Pressure",
+                  "Queue_Size_Change", "%_Queue_Size_Change", "Load", "%_within_18_weeks",
+                  "Relative_Improvement_in_18_weeks", "percentile_improvement", 
+                  "%_within_18_weeks_Change", "median_wait", "median_change")
+
+for (col in numeric_cols) {
+  if (col %in% names(finalized_table)) {
+    finalized_table[[col]] <- as.numeric(finalized_table[[col]])
+  }
+}
+
 # Custom numeric filter: show rows with value >= filter input
 numeric_filter_method <- reactable::JS(
   "function(rows, id, filterValue) {\n",
@@ -214,6 +226,30 @@ columns_list <- lapply(seq_along(names(finalized_table)), function(i) {
       filterable = TRUE,
       filterMethod = numeric_filter_method
     )
+  } else if (col == "%_within_18_weeks_Change") {
+    reactable::colDef(
+      format = reactable::colFormat(digits = 1),
+      name = "% within 18 Weeks Change",
+      filterable = TRUE,
+      filterMethod = numeric_filter_method
+    )
+  } else if (col == "median_wait") {
+    reactable::colDef(
+      style = function(value) {
+        list(fontWeight = "bold")
+      },
+      format = reactable::colFormat(digits = 0),
+      name = "Median Wait",
+      filterable = TRUE,
+      filterMethod = numeric_filter_method
+    )
+  } else if (col == "median_change") {
+    reactable::colDef(
+      format = reactable::colFormat(digits = 2),
+      name = "Median Change",
+      filterable = TRUE,
+      filterMethod = numeric_filter_method
+    )
   } else {
     reactable::colDef(
       filterable = TRUE
@@ -253,7 +289,7 @@ tbl_widget <- reactable::reactable(
     reactable::colGroup(name = "Size", columns = c("Queue_Size", "Target_Q_Size", "Queue_Ratio")),
     reactable::colGroup(name = "Shape", columns = c("percentile_92", "%_within_18_weeks", "Percentile_Pressure")),
     reactable::colGroup(name = "Improvement", columns = c("Queue_Size_Change", "Relative_Improvement_in_18_weeks",
-    "%_Queue_Size_Change", "percentile_improvement", "Load"))
+    "%_Queue_Size_Change", "percentile_improvement", "%_within_18_weeks_Change", "Load"))
   )
 )
 
@@ -272,3 +308,61 @@ hide_row_filter_css <- htmltools::tags$style(htmltools::HTML(
 tbl_widget <- htmlwidgets::prependContent(tbl_widget, list(row_number_css, hide_row_filter_css))
 
 tbl_widget
+
+Save = FALSE 
+if (Save) {
+Sys.setenv(RSTUDIO_PANDOC="/usr/local/bin") # or wherever pandoc is installed
+# Save the widget to a temporary file, read it, and remove unwanted header lines
+save_and_clean_widget <- function(widget, file) {
+  tmpfile <- tempfile(fileext = ".html")
+  saveWidget(widget, tmpfile, selfcontained = TRUE)
+  lines <- readLines(tmpfile, warn = FALSE)
+  # Remove lines that start with "---" or contain "title:" or "header-include:" or "head:"
+  lines <- lines[!grepl("^---|^title:|^header-include:|^head:", lines)]
+  writeLines(lines, file)
+  unlink(tmpfile)
+}
+
+
+  date_str <- format(max_report_date, "%Y-%m")
+  out_dir <- "Table_Outputs"
+  if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE)
+  outfile <- file.path(out_dir, paste0("National_Data_", date_str, ".html"))
+  save_and_clean_widget(tbl_widget, outfile)
+}
+
+colnames(finalized_table)
+
+# Quick summary stats for median_change where Provider_Code is C_999 and Queue_Size > 10000
+# filtered_data <- finalized_table[
+#   finalized_table$Treatment_Function_Code == "C_999" &
+#     finalized_table$Queue_Size > 10000,
+# ]
+# View(filtered_data)
+# mean_median_change <- mean(filtered_data$median_change, na.rm = TRUE)
+# sd_median_change <- sd(filtered_data$median_change, na.rm = TRUE)
+# mean_plus_2sd_median_change <- mean_median_change - 2 * sd_median_change
+# n_rows <- nrow(filtered_data)
+# n_negative <- sum(filtered_data$median_change < 0, na.rm = TRUE)
+# print(list(
+#   mean_median_change = mean_median_change,
+#   mean_plus_2sd = mean_plus_2sd_median_change,
+#   n_rows = n_rows,
+#   n_negative = n_negative
+# ))
+
+# mean_median_wait <- mean(filtered_data$median_wait, na.rm = TRUE)
+# print(list(mean_median_wait = mean_median_wait))
+
+# # Summary stats for %_within_18_weeks_Change on the same filtered rows
+# mean_within_change <- mean(filtered_data$`%_within_18_weeks_Change`, na.rm = TRUE)
+# sd_within_change <- sd(filtered_data$`%_within_18_weeks_Change`, na.rm = TRUE)
+# mean_minus_2sd_within_change <- mean_within_change - 2 * sd_within_change
+# print(list(mean_within_18_weeks_change = mean_within_change, sd_within_change = sd_within_change, mean_minus_2sd = mean_minus_2sd_within_change))
+
+
+# filtered_data <- finalized_table[
+#   finalized_table$Treatment_Function_Code == "C_999" &
+# ]
+# sum_queue_size <- sum(filtered_data$Queue_Size, na.rm = TRUE)
+# print(list(sum_queue_size = sum_queue_size))
